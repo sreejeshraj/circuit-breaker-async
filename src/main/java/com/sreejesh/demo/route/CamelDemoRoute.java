@@ -3,6 +3,7 @@ package com.sreejesh.demo.route;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.file.GenericFileOperationFailedException;
 import org.apache.camel.impl.ThrottlingExceptionRoutePolicy;
 import org.apache.camel.spi.RoutePolicy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,20 +27,26 @@ public class CamelDemoRoute extends RouteBuilder {
 		// @formatter:off
 
 		int threshold = 2;
-		long failureWindow = 30000;
-		long halfOpenAfter = 120000;
+		long failureWindow = 10000;
+		long halfOpenAfter = 30000;
 		RoutePolicy routePolicy = new ThrottlingExceptionRoutePolicy(threshold, failureWindow, halfOpenAfter, null);
 		
 //		errorHandler(deadLetterChannel("seda:errorQueue").useOriginalMessage().maximumRedeliveries(3).redeliveryDelay(1000));
 
+//		onException(GenericFileOperationFailedException.class).handled(false).to("seda:errorQueue");
 
+		onException(GenericFileOperationFailedException.class)
+		.maximumRedeliveries(3)
+		.redeliveryDelay(1000)
+		.handled(false)
+		.to("seda:errorQueue");
 
-		from("timer://myTimer?period=5s")
+		from("timer://myTimer?period=3s")
 		.routeId("InputFolderToTestSedaRoute")
 		.setBody(exchangeProperty(Exchange.TIMER_FIRED_TIME))
 		.convertBodyTo(String.class)
 		.to("seda://testSeda")
-		.log("**** Input data published to  testSeda - ${body}***** :")
+		.log("**** Input data published to  testSeda - ${body} >>>>> TimerCount - ${exchangeProperty.CamelTimerCounter}***** :")
 		;
 
 		from("seda://testSeda")
