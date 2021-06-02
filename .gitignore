@@ -40,7 +40,7 @@ secrets.yml
 .sts4-cache
 *.log
 output
-
+error
 
 
 ##########################
