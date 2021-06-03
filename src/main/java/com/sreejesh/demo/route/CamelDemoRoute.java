@@ -33,6 +33,7 @@ public class CamelDemoRoute extends RouteBuilder {
 		
 //		errorHandler(deadLetterChannel("seda:errorQueue").useOriginalMessage().maximumRedeliveries(3).redeliveryDelay(1000));
 
+//		Only recoverable errors. For irrecoverable errors, make handled to true
 //		onException(GenericFileOperationFailedException.class).handled(false).to("seda:errorQueue");
 
 		onException(GenericFileOperationFailedException.class)
